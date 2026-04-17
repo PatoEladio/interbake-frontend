@@ -12,6 +12,7 @@ import Cargos from "./Cargos"
 import Accesos from "./Accesos"
 import Horarios from "./Horarios"
 import Turnos from "./Turnos"
+import Marcas from "./Marcas"
 
 
 function Dashboard() {
@@ -26,7 +27,8 @@ function Dashboard() {
     { nombre_pagina: "Cargos" },
     { nombre_pagina: "Accesos" },
     { nombre_pagina: "Horarios" },
-    { nombre_pagina: "Turnos" }
+    { nombre_pagina: "Turnos" },
+    { nombre_pagina: "Marcas" }
   ]);
 
   const handleLogoutConfirm = () => {
@@ -225,6 +227,20 @@ function Dashboard() {
             h="full"
           >
             <Turnos activeView={activeView} />
+          </Box>
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            opacity={activeView === "Marcas" ? 1 : 0}
+            pointerEvents={activeView === "Marcas" ? "auto" : "none"}
+            transition="opacity 0.2s ease-in-out"
+            w="full"
+            h="full"
+          >
+            <Marcas activeView={activeView} />
           </Box>
           <Box
             position="absolute"

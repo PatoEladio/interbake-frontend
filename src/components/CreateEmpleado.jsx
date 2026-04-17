@@ -17,11 +17,13 @@ import toast from "react-hot-toast";
 import createEmpleado from "../services/createEmpleado";
 import getCargos from "../services/getCargos";
 import getCencos from "../services/getCencos";
+import getTurnos from "../services/getTurnos";
 
 export default function CreateEmpleado({ onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [cargos, setCargos] = useState([]);
   const [cencos, setCencos] = useState([]);
+  const [turnos, setTurnos] = useState([]);
 
   const [formData, setFormData] = useState({
     nombres: "",
@@ -45,22 +47,26 @@ export default function CreateEmpleado({ onSuccess, onCancel }) {
     contrato_indefinido: true,
     art_22: false,
     clave: "1234",
+    turno_id: "",
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [resCargos, resCencos] = await Promise.all([
+        const [resCargos, resCencos, resTurnos] = await Promise.all([
           getCargos(),
-          getCencos()
+          getCencos(),
+          getTurnos(1, 9999)
         ]);
 
         // Handle pagination wrappers if present
         const dataCargos = Array.isArray(resCargos) ? resCargos : (resCargos?.data || []);
         const dataCencos = Array.isArray(resCencos) ? resCencos : (resCencos?.data || []);
+        const dataTurnos = Array.isArray(resTurnos) ? resTurnos : (resTurnos?.data || []);
 
         setCargos(dataCargos);
         setCencos(dataCencos);
+        setTurnos(dataTurnos);
       } catch (error) {
         console.error("Error al cargar cargos/cencos", error);
       }
@@ -99,6 +105,7 @@ export default function CreateEmpleado({ onSuccess, onCancel }) {
         fecha_fin_contrato: formData.contrato_indefinido ? "3000-12-31" : formData.fecha_fin_contrato,
         cargo_id: { cargo_id: parseInt(formData.cargo_id) },
         cenco_id: { cenco_id: parseInt(formData.cenco_id) },
+        turno: formData.turno_id ? { turno_id: parseInt(formData.turno_id) } : null,
         telefono_fijo: parseInt(formData.telefono_fijo) || 0,
         telefono_movil: formData.telefono_movil ? parseInt(formData.telefono_movil) : null,
       };
@@ -120,6 +127,10 @@ export default function CreateEmpleado({ onSuccess, onCancel }) {
 
   const collectionCencos = createListCollection({
     items: cencos.map(c => ({ label: c.nombre, value: c.cenco_id.toString() }))
+  });
+
+  const collectionTurnos = createListCollection({
+    items: turnos.filter(t => t.estado===1 || t.estado_id===1).map(c => ({ label: c.nombre, value: c.turno_id.toString() })).length > 0 ? turnos.filter(t => t.estado===1 || t.estado_id===1).map(c => ({ label: c.nombre, value: c.turno_id.toString() })) : turnos.map(c => ({ label: c.nombre, value: c.turno_id.toString() })) 
   });
 
   const collectionSexo = createListCollection({
@@ -225,6 +236,19 @@ export default function CreateEmpleado({ onSuccess, onCancel }) {
                 <Input type="date" name="fecha_fin_contrato" value={formData.fecha_fin_contrato} onChange={handleChange} />
               </Field.Root>
             )}
+            <Field.Root>
+              <Field.Label>Turno</Field.Label>
+              <Select.Root
+                collection={collectionTurnos}
+                onValueChange={(d) => setFormData(p => ({ ...p, turno_id: d.value[0] }))}
+                value={formData.turno_id ? [formData.turno_id] : []}
+              >
+                <Select.Control><Select.Trigger><Select.ValueText placeholder="Seleccione turno..." /></Select.Trigger></Select.Control>
+                <Portal><Select.Positioner><Select.Content>
+                  {collectionTurnos.items.map(i => <Select.Item item={i} key={i.value}>{i.label}</Select.Item>)}
+                </Select.Content></Select.Positioner></Portal>
+              </Select.Root>
+            </Field.Root>
           </Grid>
 
           <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6} mt={6}>
